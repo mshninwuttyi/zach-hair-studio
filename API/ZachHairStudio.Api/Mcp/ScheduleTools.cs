@@ -73,6 +73,60 @@ public class ScheduleTools
         return JsonSerializer.Serialize(new { stylists = await stylistsService.GetActiveStylistsAsync() }, SerializerOptions);
     }
 
+    [McpServerTool(Name = "create_appointment")]
+    [Description("Books an appointment. Call this ONLY after the customer has confirmed the " +
+        "service, time, and their contact details out loud. The customer receives a " +
+        "confirmation email at the provided address.")]
+    public static async Task<string> CreateAppointment(
+        AppointmentsService appointmentsService,
+        ServicesService servicesService,
+        [Description("The service name, slug, or numeric id to book (call get_services first).")] string service,
+        [Description("The exact ISO 8601 instant of the slot returned by get_available_slots (e.g. a value like 2026-08-10T14:00:00+07:00), in salon local time.")] string startsAt,
+        [Description("The customer's confirmed first name.")] string firstName,
+        [Description("The customer's confirmed last name.")] string lastName,
+        [Description("The customer's confirmed email address.")] string email,
+        [Description("Optional stylist id. Omit for Any stylist (the server assigns a concrete free stylist).")] int? stylistId = null,
+        [Description("Optional customer phone number.")] string? phone = null)
+    {
+        if (!DateTimeOffset.TryParse(startsAt, CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsedStartsAt))
+        {
+            return JsonSerializer.Serialize(
+                new { error = $"Invalid startsAt '{startsAt}'. Expected an ISO 8601 instant." }, SerializerOptions);
+        }
+
+        var (resolvedId, resolveError) = await ResolveServiceIdAsync(servicesService, service);
+        if (resolveError is not null)
+        {
+            return JsonSerializer.Serialize(new { error = resolveError }, SerializerOptions);
+        }
+
+        var result = await appointmentsService.CreateAsync(
+            new AppointmentCreateDto
+            {
+                ServiceId = resolvedId.Value,
+                StylistId = stylistId,
+                StartsAt = parsedStartsAt,
+                FirstName = firstName,
+                LastName = lastName,
+                Email = email,
+                Phone = phone,
+            });
+
+        if (result.IsSuccess)
+        {
+            return JsonSerializer.Serialize(new { success = true, appointment = result.Data }, SerializerOptions);
+        }
+
+        var kind = result.IsValidationError() ? "validation"
+            : result.IsNotFound() ? "not_found"
+            : result.IsDuplicateRecord() ? "duplicate"
+            : result.IsSystemError() ? "system"
+            : "error";
+
+        return JsonSerializer.Serialize(
+            new { success = false, kind, message = result.Message }, SerializerOptions);
+    }
+
     // Resolves a service name, slug, or numeric id against the active catalog. Numeric
     // ids are passed through as-is; anything else is matched against the active-only
     // GetServicesAsync() listing (Slug first, then Name, case-insensitive). Unknown input
