@@ -5,10 +5,10 @@ milestone_name: milestone
 current_phase: 04
 current_phase_name: staff-management-services-availability
 status: executing
-stopped_at: Completed quick task 260809-n8x (fixed misplaced nosemgrep comment in chat.ts; local semgrep run now 0 findings)
-last_updated: "2026-08-09T10:54:00.000Z"
+stopped_at: Completed quick task 260809-wxv (added four MCP tools — get_services, get_stylists, get_available_slots, create_appointment — to the API MCP server)
+last_updated: "2026-08-10T00:00:00.000Z"
 last_activity: 2026-08-09
-last_activity_desc: Completed quick task 260809-n8x - 260809-m2q's nosemgrep comment in chat.ts sat 2 lines above the flagged new RegExp() call (not directly above it) and never actually suppressed the finding; live CI on PR #43 (run 31308767427) still failed sast(semgrep) against commit fe26590. Moved the comment inside the arrow function directly above new RegExp(...); verified via a real local semgrep install (before: 1 blocking finding reproducing the CI failure; after: 0 findings, exit 0). gitleaks is confirmed green on the same run.
+last_activity_desc: Completed quick task 260809-wxv - extended the existing /mcp surface from one read-only tool to four: renamed the 260801-irn availability tool to get_available_slots (now taking a name/slug/id service argument resolved against the active catalog, fail-closed on unknown), added get_services and get_stylists (active catalog reads), and added create_appointment (write tool requiring explicit customer confirmation, delegating to AppointmentsService.CreateAsync — same anonymous-write path as REST POST /api/appointments). All logic reused from SlotService/AppointmentsService/ServicesService/StylistsService; no second availability or booking system. Build passes 0 errors; additive-only (Shared/Controllers untouched).
 progress:
   total_phases: 4
   completed_phases: 4
@@ -159,6 +159,7 @@ Recent decisions affecting current work:
 | 260809-k3d | Fix gitleaks CI still failing (real root cause) — extend .gitleaks.toml's GSD manifest checksum allowlist to .codex/ paths; 3 genuine generic-api-key false positives in .codex/gsd-file-manifest.json, unmasked only once 260809-ipz let the scan complete | 2026-08-09 | 979f316 | [260809-k3d-fix-gitleaks-codex-manifest-allowlist](./quick/260809-k3d-fix-gitleaks-codex-manifest-allowlist/) |
 | 260809-m2q | Suppress semgrep detect-non-literal-regexp false positive on chat.ts/chat.selfcheck.mjs alias RegExp — alias is hardcoded (CATEGORY_ALIASES), never user input, no ReDoS surface; targeted nosemgrep comment + rationale | 2026-08-09 | 9ae1533 | [260809-m2q-fix-semgrep-redos-false-positive-alias-r](./quick/260809-m2q-fix-semgrep-redos-false-positive-alias-r/) |
 | 260809-n8x | Fix misplaced nosemgrep comment in chat.ts (260809-m2q's comment sat 2 lines above the flagged new RegExp() call, never actually suppressed it); moved directly above the call, verified 0 findings via real local semgrep run | 2026-08-09 | 973b2fb | [260809-n8x-fix-semgrep-nosemgrep-comment-placement](./quick/260809-n8x-fix-semgrep-nosemgrep-comment-placement/) |
+| 260809-wxv | Add four MCP tools to the API MCP server — get_services, get_stylists, get_available_slots (name/slug/id service arg), create_appointment (confirmation-gated write); all reuse SlotService/AppointmentsService logic, no second availability/booking system | 2026-08-09 | 24d2c20 | [260809-wxv-add-four-mcp-tools-get-services-get-styl](./quick/260809-wxv-add-four-mcp-tools-get-services-get-styl/) |
 
 ## Deferred Items
 
