@@ -57,9 +57,14 @@ builder.Services.AddScoped<SlotService>();
 builder.Services.AddScoped<AvailabilityService>();
 
 // Stateless HTTP transport shares the ASP.NET Core per-request DI scope, which is what
-// lets the scoped SlotService (and its scoped BookingDbContext) resolve correctly per
-// tool call. Explicit WithTools<ScheduleTools>() (not assembly-wide discovery) keeps the
-// unauthenticated /mcp surface limited to exactly this one read-only tool (mitigates T-Q04).
+// lets the scoped services (SlotService, ServicesService, StylistsService,
+// AppointmentsService, and their scoped BookingDbContext) resolve correctly per tool
+// call. Explicit WithTools<ScheduleTools>() (not assembly-wide discovery) keeps the
+// unauthenticated /mcp surface limited to exactly these four tools: three read-only
+// (get_services, get_stylists, get_available_slots) plus one write tool
+// (create_appointment) whose Description requires explicit customer confirmation before
+// invocation - matching the anonymous-write parity of the REST POST /api/appointments
+// endpoint (T-W03).
 builder.Services.AddMcpServer()
     .WithHttpTransport(options => { options.Stateless = true; })
     .WithTools<ScheduleTools>();
