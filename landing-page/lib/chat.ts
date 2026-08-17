@@ -453,15 +453,12 @@ async function checkAvailabilityReply(
 }
 
 /**
- * Single seam for a real backend: this is the ONLY function a future chat API
- * needs to replace. Swap the body below for a `fetch` to the real endpoint —
- * the signature and return type (Promise<string>) stay identical, so no
- * ChatWidget code needs to change. `history` is accepted now (for a future
- * request payload) but unused by this mock.
+ * Keyword/REST fallback used when Hugging Face is not configured (no HF_TOKEN)
+ * or the AI route fails. Keeps the widget usable without an LLM key.
  */
-export async function sendChatMessage(
+export async function generateMockChatReply(
   userText: string,
-  history: ChatMessage[],
+  _history: ChatMessage[],
   services: Service[],
   stylists: Stylist[] = []
 ): Promise<string> {
@@ -549,4 +546,43 @@ export async function sendChatMessage(
     "I'm your booking assistant — I can help with services, pricing, hours, " +
     `or getting you booked in. What would you like to know? ${BOOK_LINK}`
   );
+}
+
+/**
+ * Prefers the server AI route (Hugging Face + MCP read tools). Falls back to
+ * the keyword/REST mock when the key is missing or the AI path errors.
+ */
+export async function sendChatMessage(
+  userText: string,
+  history: ChatMessage[],
+  services: Service[],
+  stylists: Stylist[] = []
+): Promise<string> {
+  try {
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: userText,
+        history: history.map((m) => ({ role: m.role, text: m.text })),
+      }),
+    });
+
+    if (res.status === 503) {
+      return generateMockChatReply(userText, history, services, stylists);
+    }
+
+    if (!res.ok) {
+      return generateMockChatReply(userText, history, services, stylists);
+    }
+
+    const data = (await res.json()) as { reply?: unknown };
+    if (typeof data.reply === "string" && data.reply.trim()) {
+      return data.reply;
+    }
+  } catch {
+    // Network / parse errors → mock below
+  }
+
+  return generateMockChatReply(userText, history, services, stylists);
 }
