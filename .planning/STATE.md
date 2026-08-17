@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-07-07)
 Phase: 04 (staff-management-services-availability) — EXECUTING
 Plan: 2 of 7
 Status: Ready to execute
-Last activity: 2026-08-09 - Completed quick task 260809-hui: fix gitleaks docker dubious ownership error in security workflow
+Last activity: 2026-08-17 - Completed quick task 260817-um3: Inject salon-local current date into chat AI system prompt so relative dates resolve correctly
 
 Progress: [██████████] 100%
 
@@ -160,6 +160,7 @@ Recent decisions affecting current work:
 | 260809-m2q | Suppress semgrep detect-non-literal-regexp false positive on chat.ts/chat.selfcheck.mjs alias RegExp — alias is hardcoded (CATEGORY_ALIASES), never user input, no ReDoS surface; targeted nosemgrep comment + rationale | 2026-08-09 | 9ae1533 | [260809-m2q-fix-semgrep-redos-false-positive-alias-r](./quick/260809-m2q-fix-semgrep-redos-false-positive-alias-r/) |
 | 260809-n8x | Fix misplaced nosemgrep comment in chat.ts (260809-m2q's comment sat 2 lines above the flagged new RegExp() call, never actually suppressed it); moved directly above the call, verified 0 findings via real local semgrep run | 2026-08-09 | 973b2fb | [260809-n8x-fix-semgrep-nosemgrep-comment-placement](./quick/260809-n8x-fix-semgrep-nosemgrep-comment-placement/) |
 | 260809-wxv | Add four MCP tools to the API MCP server — get_services, get_stylists, get_available_slots (name/slug/id service arg), create_appointment (confirmation-gated write); all reuse SlotService/AppointmentsService logic, no second availability/booking system | 2026-08-09 | 24d2c20 | [260809-wxv-add-four-mcp-tools-get-services-get-styl](./quick/260809-wxv-add-four-mcp-tools-get-services-get-styl/) |
+| 260817-um3 | Inject salon-local current date into chat AI system prompt so relative dates resolve correctly (chat-ai.ts had no "today", so the LLM invented one — "tomorrow" resolved to Aug 23 2023); SYSTEM_PROMPT const → per-request buildSystemPrompt(now) with Asia/Yangon date + self-check | 2026-08-17 | ebaad9b | [260817-um3-inject-salon-local-current-date-into-cha](./quick/260817-um3-inject-salon-local-current-date-into-cha/) |
 
 ## Deferred Items
 
